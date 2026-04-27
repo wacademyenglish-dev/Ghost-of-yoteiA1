@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHOST OF YŌTEI | A1 English Lesson</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ronin: {
+                            red: '#990000',
+                            darkred: '#4a0000',
+                            black: '#0a0a0a',
+                            panel: 'rgba(15, 15, 15, 0.85)',
+                            white: '#f0f0f0',
+                            gold: '#cca300',
+                            steel: '#71717a'
+                        }
+                    },
+                    fontFamily: {
+                        title: ['Cinzel', 'serif'],
+                        body: ['Noto Serif', 'serif'],
+                        ui: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Core Styles */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #050505; color: #f0f0f0; overflow: hidden; }
+        
+        #app-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: radial-gradient(circle at center, #1a0505 0%, #000000 100%);
+        }
+
+        /* Samurai Glassmorphism */
+        .glass {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(153, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(153, 0, 0, 0.1);
+        }
+        .glass-panel { border-radius: 8px; }
+        
+        /* Typography FX */
+        .text-glow-red { text-shadow: 0 0 15px rgba(153, 0, 0, 0.8); }
+        .text-glow-white { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+        
+        /* Page Transitions & Layout */
+        .page { 
+            display: none; opacity: 0; transition: opacity 0.5s ease; 
+            width: 100%; height: 100%; position: absolute; top:0; left:0; 
+            overflow-y: auto; overflow-x: hidden;
+            padding: 6rem 1rem 7rem 1rem; box-sizing: border-box;
+            justify-content: center; align-items: center;
+        }
+        .page.active { display: flex; opacity: 1; z-index: 10; animation: fadeIn 0.6s ease forwards; }
+        
+        .page-content {
+            width: 100%; max-width: 1200px; margin: auto;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* Embers & Snow Particles */
+        #particle-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .particle-ember { position: absolute; background: #ff4d4d; border-radius: 50%; opacity: 0.6; animation: floatUp linear infinite; box-shadow: 0 0 8px #ff0000; }
+        .particle-snow { position: absolute; background: #ffffff; border-radius: 50%; opacity: 0.4; animation: floatDown linear infinite; box-shadow: 0 0 5px #ffffff; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes floatUp { 0% { transform: translateY(100vh) scale(0) translateX(0); opacity: 0; } 50% { opacity: 0.8; transform: translateX(20px); } 100% { transform: translateY(-10vh) scale(1) translateX(-20px); opacity: 0; } }
+        @keyframes floatDown { 0% { transform: translateY(-10vh) scale(0) translateX(0); opacity: 0; } 50% { opacity: 0.6; transform: translateX(-15px); } 100% { transform: translateY(100vh) scale(1) translateX(15px); opacity: 0; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+        .shake-fx { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        @keyframes pulse-red { 0% { transform: scale(1); text-shadow: 0 0 10px #990000; } 50% { transform: scale(1.1); text-shadow: 0 0 30px #ff4d4d; } 100% { transform: scale(1); text-shadow: 0 0 10px #990000; } }
+        .xp-gain { animation: pulse-red 0.6s ease; color: #ff4d4d; }
+        
+        @keyframes blood-flash { 0% { background-color: rgba(153,0,0,0); } 50% { background-color: rgba(153,0,0,0.6); } 100% { background-color: rgba(153,0,0,0); } }
+        .dmg-overlay { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; animation: blood-flash 0.4s ease; }
+
+        /* Praise Animation */
+        @keyframes praise-pop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; text-shadow: 0 0 40px currentColor; }
+            30% { transform: translate(-50%, -50%) scale(1); opacity: 1; text-shadow: 0 0 20px currentColor; }
+            70% { transform: translate(-50%, -80%) scale(1); opacity: 1; text-shadow: 0 0 20px currentColor; }
+            100% { transform: translate(-50%, -120%) scale(0.8); opacity: 0; }
+        }
+        .praise-fx {
+            animation: praise-pop 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* UI Buttons */
+        .btn-ronin {
+            background: linear-gradient(45deg, rgba(153, 0, 0, 0.1) 0%, rgba(153, 0, 0, 0.3) 100%);
+            border: 1px solid #990000; color: #f0f0f0; padding: 14px 28px;
+            font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; border-radius: 2px;
+        }
+        .btn-ronin:hover { background: rgba(153, 0, 0, 0.6); box-shadow: 0 0 20px rgba(153, 0, 0, 0.6); transform: translateY(-2px); color: #fff; }
+        .btn-ronin:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Q&A Accordions */
+        .qa-block .answer-box { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out, opacity 0.4s ease; opacity: 0; }
+        .qa-block.revealed .answer-box { max-height: 500px; opacity: 1; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid rgba(153, 0, 0, 0.3); }
+        .qa-block.revealed .reveal-hint { display: none; opacity: 0; }
+
+        /* Sandbox Elements */
+        .sandbox-slot { transition: transform 0.2s, background 0.3s; user-select: none; }
+        .sandbox-slot:active { transform: scale(0.95); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.8); }
+        ::-webkit-scrollbar-thumb { background: #990000; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="app-bg"></div>
+    <div id="particle-container"></div>
+    <div id="dmg-flash"></div>
+
+    <header class="fixed top-0 left-0 w-full glass z-50 flex justify-between items-center p-4 px-8 border-b border-ronin-red/40 bg-black/80">
+        <div class="flex items-center space-x-4 w-1/3">
+            <i class="fa-solid fa-gavel text-ronin-white text-2xl" id="hp-icon"></i>
+            <div class="w-36 h-3 bg-gray-900 rounded-sm overflow-hidden border border-ronin-red/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
+                <div id="hp-bar" class="h-full bg-ronin-red w-full transition-all duration-300"></div>
+            </div>
+            <span class="font-ui text-ronin-white font-bold tracking-widest text-lg" id="hp-text">100%</span>
+        </div>
+        
+        <div class="text-center w-1/3 flex flex-col items-center">
+            <div class="font-title text-[11px] tracking-[0.4em] text-gray-400 mb-1 text-glow-red">YŌTEI MOUNTAIN</div>
+            <div class="font-title text-2xl font-bold text-white text-glow-white uppercase leading-none" id="hud-player-name">[ UNKNOWN ]</div>
+            <div class="text-xs text-ronin-red uppercase tracking-widest mt-1 font-body" id="hud-player-class">Wanderer</div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-4 w-1/3">
+            <span class="font-ui text-3xl font-bold text-white" id="xp-counter">0</span>
+            <span class="font-title text-[10px] tracking-widest text-ronin-white leading-tight text-right">GHOST<br>TALES</span>
+            <i class="fa-solid fa-scroll text-ronin-red text-2xl"></i>
+        </div>
+    </header>
+
+    <div class="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
+        <button onclick="toggleDMTools()" class="glass w-14 h-14 flex items-center justify-center rounded-full hover:bg-ronin-red/20 transition-colors border border-gray-600 group relative">
+            <i class="fa-solid fa-mask text-gray-300 group-hover:text-ronin-white transition-colors text-2xl"></i>
+        </button>
+        <div id="dm-panel" class="glass glass-panel p-6 hidden flex-col gap-4 w-72 transform transition-all origin-bottom-left shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+            <div class="text-sm font-title text-ronin-red border-b border-ronin-red/30 pb-2 mb-2 flex justify-between text-glow-red">
+                <span>SHOGUN TOOLS (TEACHER)</span>
+            </div>
+            <button onclick="addXP(50)" class="btn-ronin text-sm py-2"><i class="fa-solid fa-plus mr-2"></i> 50 TALES</button>
+            <button onclick="takeDamage(10)" class="btn-ronin text-sm py-2 border-red-800 text-red-300 hover:bg-red-900/60"><i class="fa-solid fa-bolt mr-2"></i> STRIKE -10</button>
+            
+            <!-- PRAISE BUTTONS -->
+            <div class="text-xs font-title text-gray-400 border-b border-gray-600 pb-1 mt-2 mb-1">PRAISE POP-UPS</div>
+            <div class="flex gap-2 justify-between">
+                <button onclick="showPraise('PERFECT!', 'text-yellow-400')" class="glass hover:bg-yellow-500/20 border border-gray-600 hover:border-yellow-400 text-yellow-400 px-2 py-1 rounded-sm text-xs font-title flex-1 transition-colors">PERFECT</button>
+                <button onclick="showPraise('GREAT JOB!', 'text-green-400')" class="glass hover:bg-green-500/20 border border-gray-600 hover:border-green-400 text-green-400 px-2 py-1 rounded-sm text-xs font-title flex-1 transition-colors">GREAT</button>
+                <button onclick="showPraise('EPIC!', 'text-ronin-red')" class="glass hover:bg-ronin-red/20 border border-gray-600 hover:border-ronin-red text-ronin-red px-2 py-1 rounded-sm text-xs font-title flex-1 transition-colors">EPIC</button>
+            </div>
+
+            <div id="dm-timer-display" class="font-ui text-center text-4xl text-glow-white tracking-widest text-white mt-2">00:00</div>
+            <div class="flex justify-center gap-6 mt-2">
+                <button id="btn-timer-start" class="text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-play"></i></button>
+                <button id="btn-timer-stop" class="text-ronin-red hover:text-white text-2xl"><i class="fa-solid fa-stop"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end">
+        <button onclick="toggleFullScreen()" class="glass w-12 h-12 flex items-center justify-center rounded-full hover:bg-ronin-red/20 transition-colors border border-gray-600">
+            <i class="fa-solid fa-expand text-gray-300 text-lg"></i>
+        </button>
+        <button onclick="toggleWhiteboard()" class="glass w-16 h-16 flex items-center justify-center rounded-full hover:bg-ronin-red/30 transition-colors border-2 border-ronin-red shadow-[0_0_20px_rgba(153,0,0,0.5)]">
+            <i class="fa-solid fa-pen-nib text-white text-2xl"></i>
+        </button>
+    </div>
+    
+    <div id="whiteboard-panel" class="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl hidden flex-col p-12 transition-opacity pt-28">
+        <div class="flex justify-between items-center mb-6 max-w-6xl mx-auto w-full">
+            <h2 class="font-title text-4xl text-ronin-white text-glow-white"><i class="fa-solid fa-paint-brush mr-4"></i> INK SCROLL</h2>
+            <div class="flex gap-4">
+                <button onclick="clearWhiteboard()" class="text-gray-400 hover:text-ronin-red font-title border border-gray-600 px-4 py-2 rounded hover:border-ronin-red transition-colors"><i class="fa-solid fa-eraser mr-2"></i> CLEAN</button>
+                <button onclick="toggleWhiteboard()" class="text-gray-400 hover:text-white text-4xl ml-4"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <textarea id="wb-textarea" class="w-full max-w-6xl mx-auto flex-1 bg-[#0a0a0a]/80 border-2 border-ronin-red/30 rounded-sm p-8 font-body text-3xl text-gray-200 focus:outline-none focus:border-ronin-red resize-none shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]" placeholder=">> Write vocabulary and notes here..."></textarea>
+    </div>
+
+    <main id="main-content" class="w-full h-full relative">
+        
+        <div class="page active" id="page-1">
+            <div class="page-content">
+                <div class="glass glass-panel max-w-4xl w-full p-12 relative border-t-4 border-ronin-red">
+                    <h1 class="font-title text-5xl mb-8 text-ronin-white text-center text-glow-red">TEACHER'S SCROLL</h1>
+                    <div class="space-y-6 font-body text-xl text-gray-300 leading-relaxed">
+                        <p><strong class="text-white font-title text-2xl text-ronin-red">THEME:</strong> Ghost of Yōtei (Samurai, Feudal Japan, Animals, Scenery)</p>
+                        <p><strong class="text-white font-title text-2xl text-ronin-red">TARGET:</strong> A1 Beginners - Present Continuous <i>(I am walking, She is fighting, They are running)</i> & Basic Actions.</p>
+                        <div class="bg-ronin-red/10 border-l-4 border-ronin-red p-6 rounded mt-8 font-body">
+                            <strong class="text-white font-title tracking-widest block mb-4 uppercase">Instructions:</strong>
+                            <ul class="list-disc list-inside space-y-3 text-lg">
+                                <li>This is an A1 level lesson. Speak slowly and use lots of gestures.</li>
+                                <li>The grammar focuses on describing exactly what is happening in the pictures/video right NOW.</li>
+                                <li>The student selects a Japanese warrior class on page 3. This changes the RPG ending.</li>
+                                <li>The RPG Finale (Page 27) now features a fully functional Dice Roll system to defeat the enemy!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-2">
+            <div class="absolute inset-0 bg-[url('https://images7.alphacoders.com/138/thumb-1920-1387216.jpg')] bg-cover bg-center z-[-1]">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+            </div>
+            <div class="page-content h-full justify-end pb-24">
+                <div class="text-center">
+                    <div class="text-ronin-red tracking-[1em] text-xl mb-8 font-title animate-pulse text-glow-red font-bold">1603 • HOKKAIDO</div>
+                    <div class="flex justify-center gap-6">
+                        <span class="glass px-8 py-3 rounded-sm text-lg font-title text-white border border-ronin-red shadow-[0_0_15px_rgba(153,0,0,0.5)] bg-ronin-red/20">LEVEL: A1</span>
+                        <span class="glass px-8 py-3 rounded-sm text-lg font-title text-gray-300 border border-gray-500 shadow-[0_0_15px_rgba(255,255,255,0.1)]">PRESENT CONTINUOUS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-3">
+            <div class="page-content">
+                <h2 class="font-title text-5xl mb-6 text-center text-glow-white w-full">CHOOSE YOUR PATH</h2>
+                <p class="font-body text-2xl text-gray-400 mb-10 text-center">Who are you in the world of Yōtei?</p>
+                
+                <div id="sorting-quiz-area" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+                    <div class="glass glass-panel p-8 text-center cursor-pointer hover:bg-ronin-red/20 transition-all border-2 border-transparent hover:border-ronin-red group" onclick="selectClass('SAMURAI', '#ff4d4d')">
+                        <i class="fa-brands fa-galactic-senate text-6xl mb-4 text-gray-500 group-hover:text-ronin-red transition-colors"></i>
+                        <h3 class="font-title text-3xl text-white mb-2">SAMURAI</h3>
+                        <p class="font-body text-gray-400">Honor and heavy armor.</p>
+                    </div>
+                    <div class="glass glass-panel p-8 text-center cursor-pointer hover:bg-gray-800/50 transition-all border-2 border-transparent hover:border-gray-400 group" onclick="selectClass('SHINOBI', '#a1a1aa')">
+                        <i class="fa-solid fa-user-ninja text-6xl mb-4 text-gray-500 group-hover:text-gray-300 transition-colors"></i>
+                        <h3 class="font-title text-3xl text-white mb-2">SHINOBI</h3>
+                        <p class="font-body text-gray-400">Stealth and the shadows.</p>
+                    </div>
+                    <div class="glass glass-panel p-8 text-center cursor-pointer hover:bg-yellow-900/30 transition-all border-2 border-transparent hover:border-yellow-600 group" onclick="selectClass('RONIN', '#ca8a04')">
+                        <i class="fa-solid fa-khanda text-6xl mb-4 text-gray-500 group-hover:text-yellow-500 transition-colors"></i>
+                        <h3 class="font-title text-3xl text-white mb-2">RONIN</h3>
+                        <p class="font-body text-gray-400">A warrior with no master.</p>
+                    </div>
+                </div>
+
+                <div id="name-input-section" class="mt-12 hidden flex-col items-center glass p-8 rounded-sm w-full max-w-2xl border border-ronin-red/50 shadow-[0_0_30px_rgba(153,0,0,0.3)]">
+                    <label class="font-title text-white mb-4 text-xl">WHAT IS YOUR NAME?</label>
+                    <div class="flex gap-4 w-full">
+                        <input type="text" id="player-name-input" class="flex-1 bg-black/60 border-2 border-gray-600 rounded-sm text-white px-6 py-4 font-ui text-2xl focus:outline-none focus:border-ronin-red" placeholder="Enter your name...">
+                        <button onclick="confirmAgent()" class="btn-ronin text-xl px-8">START</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-4">
+            <div class="page-content max-w-4xl">
+                <div class="text-ronin-red font-title tracking-[0.3em] mb-6 text-sm bg-ronin-red/10 px-6 py-2 rounded-full border border-ronin-red/30 inline-block text-center text-glow-red">WARM-UP I</div>
+                <div class="qa-block glass w-full p-12 cursor-pointer rounded-sm relative border border-gray-700 hover:border-ronin-red transition-colors" onclick="if(!this.classList.contains('revealed')){ addXP(10); this.classList.add('revealed');} else {this.classList.remove('revealed');}">
+                    <h2 class="font-body text-5xl text-center leading-relaxed">Do you like <span class="text-ronin-red font-bold">Japan</span>?</h2>
+                    <div class="reveal-hint text-center mt-8 text-gray-400 font-ui tracking-[0.2em] text-sm animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>CLICK FOR HELP</div>
+                    <div class="answer-box font-body text-3xl text-center">
+                        <div class="text-white mb-6 border-b border-gray-700 pb-4">"Yes, I do." / "No, I don't."</div>
+                        <div class="text-gray-300 bg-gray-900/50 p-4 rounded text-2xl">
+                            <span class="font-title text-ronin-red">Teacher:</span> Ask "What do you like? Sushi? Anime? Samurai?"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-5">
+            <div class="page-content max-w-5xl">
+                <div class="text-ronin-red font-title tracking-[0.3em] mb-6 text-sm bg-ronin-red/10 px-6 py-2 rounded-full border border-ronin-red/30 inline-block text-center text-glow-red">WARM-UP II</div>
+                <div class="qa-block glass w-full p-12 cursor-pointer rounded-sm relative border border-gray-700 hover:border-ronin-red transition-colors" onclick="if(!this.classList.contains('revealed')){ addXP(10); this.classList.add('revealed');} else {this.classList.remove('revealed');}">
+                    <h2 class="font-body text-4xl text-center leading-relaxed mb-8">What animals are <span class="text-ronin-red font-bold">dangerous</span>?</h2>
+                    <div class="flex flex-wrap justify-center gap-4 mb-6 w-full">
+                        <div class="bg-black/50 border border-gray-600 px-6 py-3 text-2xl font-body text-gray-300 rounded-sm">A dog?</div>
+                        <div class="bg-black/50 border border-gray-600 px-6 py-3 text-2xl font-body text-gray-300 rounded-sm">A cat?</div>
+                        <div class="bg-black/50 border border-gray-600 px-6 py-3 text-2xl font-body text-gray-300 rounded-sm">A wolf?</div>
+                    </div>
+                    <div class="reveal-hint text-center mt-4 text-gray-400 font-ui tracking-[0.2em] text-sm animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>CLICK FOR HELP</div>
+                    <div class="answer-box font-body text-3xl text-center">
+                        <div class="text-white mb-6 border-b border-gray-700 pb-4">"A wolf is dangerous."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-6">
+            <div class="page-content w-full max-w-6xl">
+                <div class="flex justify-between items-end mb-6 w-full px-4">
+                    <h2 class="font-title text-5xl text-glow-white text-white">YŌTEI MOUNTAIN</h2>
+                    <div class="flex gap-4">
+                        <div id="status-vocab1" class="glass px-4 py-2 rounded-sm font-ui text-gray-500 border border-gray-600 transition-all duration-500"><i class="fa-solid fa-lock mr-2"></i>WOLF</div>
+                        <div id="status-vocab2" class="glass px-4 py-2 rounded-sm font-ui text-gray-500 border border-gray-600 transition-all duration-500"><i class="fa-solid fa-lock mr-2"></i>SWORD</div>
+                        <div id="status-vocab3" class="glass px-4 py-2 rounded-sm font-ui text-gray-500 border border-gray-600 transition-all duration-500"><i class="fa-solid fa-lock mr-2"></i>SNOW</div>
+                    </div>
+                </div>
+
+                <div class="relative w-full aspect-[21/9] glass rounded-sm overflow-hidden border-2 border-ronin-red/50 shadow-[0_0_50px_rgba(153,0,0,0.2)] group">
+                    <!-- Mountain Image Restored -->
+                    <img src="https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?q=80&w=1200" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity z-10">
+                    <div class="absolute inset-0 bg-ronin-red/5 z-10 pointer-events-none"></div>
+                    
+                    <div class="absolute top-[70%] left-[20%] cursor-pointer transform -translate-x-1/2 -translate-y-1/2 z-20 hover:scale-110 transition-transform" onclick="revealVocabAdvanced('vocab1', this)">
+                        <div class="relative flex items-center justify-center">
+                            <div class="w-12 h-12 border-2 border-solid border-white rounded-full animate-ping opacity-50"></div>
+                            <div class="absolute w-6 h-6 bg-white rounded-full shadow-[0_0_20px_#ffffff]"></div>
+                            <div class="absolute -top-10 bg-black/90 text-white font-ui px-3 py-1 rounded border border-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">LOOK</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-[50%] left-[50%] cursor-pointer transform -translate-x-1/2 -translate-y-1/2 z-20 hover:scale-110 transition-transform" onclick="revealVocabAdvanced('vocab2', this)">
+                        <div class="relative flex items-center justify-center">
+                            <div class="w-12 h-12 border-2 border-solid border-ronin-red rounded-full animate-ping opacity-50"></div>
+                            <div class="absolute w-6 h-6 bg-ronin-red rounded-full shadow-[0_0_20px_#ff0000]"></div>
+                            <div class="absolute -top-10 bg-black/90 text-white font-ui px-3 py-1 rounded border border-ronin-red text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">LOOK</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-[30%] right-[30%] cursor-pointer transform -translate-x-1/2 -translate-y-1/2 z-20 hover:scale-110 transition-transform" onclick="revealVocabAdvanced('vocab3', this)">
+                        <div class="relative flex items-center justify-center">
+                            <div class="w-12 h-12 border-2 border-solid border-white rounded-full animate-ping opacity-50"></div>
+                            <div class="absolute w-6 h-6 bg-white rounded-full shadow-[0_0_20px_#ffffff]"></div>
+                            <div class="absolute -top-10 bg-black/90 text-white font-ui px-3 py-1 rounded border border-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">LOOK</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="vocab1" class="hidden absolute glass glass-panel p-10 z-30 w-[450px] text-center border-t-4 border-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/95 shadow-[0_0_50px_rgba(255,255,255,0.2)]">
+                    <img src="https://img-s-msn-com.akamaized.net/tenant/amp/entityid/AA21bz3V.img?w=768&h=432&m=6 class="w-48 h-48 object-cover rounded-full mx-auto mb-6 border-4 border-white">
+                    <h3 class="font-title text-4xl mb-4 text-white">WOLF</h3>
+                    <p class="font-body text-gray-300 text-xl">A wild animal like a dog.</p>
+                    <button class="mt-8 btn-ronin text-lg w-full bg-transparent border-white" onclick="this.parentElement.classList.add('hidden')">OK</button>
+                </div>
+                <div id="vocab2" class="hidden absolute glass glass-panel p-10 z-30 w-[450px] text-center border-t-4 border-ronin-red top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/95 shadow-[0_0_50px_rgba(153,0,0,0.5)]">
+                    <img src="https://camzillasmom.com/wp-content/uploads/2026/01/Katana-A-Beasts-Feast-Ghost-of-Yotei.webp" class="w-48 h-48 object-cover rounded-full mx-auto mb-6 border-4 border-ronin-red">
+                    <h3 class="font-title text-4xl mb-4 text-ronin-red text-glow-red">SWORD (Katana)</h3>
+                    <p class="font-body text-gray-300 text-xl">A long metal weapon.</p>
+                    <button class="mt-8 btn-ronin text-lg w-full" onclick="this.parentElement.classList.add('hidden')">OK</button>
+                </div>
+                <div id="vocab3" class="hidden absolute glass glass-panel p-10 z-30 w-[450px] text-center border-t-4 border-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/95 shadow-[0_0_50px_rgba(255,255,255,0.2)]">
+                    <i class="fa-regular fa-snowflake text-7xl mb-6 text-white text-glow-white"></i>
+                    <h3 class="font-title text-4xl mb-4 text-white">SNOW</h3>
+                    <p class="font-body text-gray-300 text-xl">White, cold ice from the sky.</p>
+                    <button class="mt-8 btn-ronin text-lg w-full bg-transparent border-white" onclick="this.parentElement.classList.add('hidden')">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-7">
+            <div class="page-content max-w-6xl w-full">
+                <h2 class="font-title text-6xl mb-10 text-center w-full text-glow-white">WHAT IS HAPPENING?</h2>
+                <div class="flex flex-col md:flex-row gap-8 w-full">
+                    <div class="w-full md:w-1/2 glass glass-panel p-10 flex flex-col font-body text-3xl leading-[1.9] text-gray-200 justify-center">
+                        <p class="mb-6">To talk about actions happening <strong>NOW</strong>, we use:</p>
+                        <div class="bg-ronin-red/20 border-l-8 border-ronin-red p-6 text-center text-4xl font-bold">
+                            Subject + AM / IS / ARE + <span class="text-ronin-red">verb-ING</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 flex flex-col gap-6">
+                        <div class="glass glass-panel p-6 flex items-center gap-6">
+                            <i class="fa-solid fa-person-walking text-5xl text-gray-400"></i>
+                            <div class="text-3xl font-body">She is <span class="text-ronin-red font-bold">walking</span>.</div>
+                        </div>
+                        <div class="glass glass-panel p-6 flex items-center gap-6">
+                            <i class="fa-solid fa-person-running text-5xl text-gray-400"></i>
+                            <div class="text-3xl font-body">The wolf is <span class="text-ronin-red font-bold">running</span>.</div>
+                        </div>
+                        <div class="glass glass-panel p-6 flex items-center gap-6">
+                            <i class="fa-solid fa-snowflake text-5xl text-gray-400"></i>
+                            <div class="text-3xl font-body">It is <span class="text-ronin-red font-bold">snowing</span>.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-8">
+            <div class="page-content">
+                <h2 class="font-title text-6xl text-white text-glow-white mb-4">TRAINING DOJO</h2>
+                <p class="font-ui text-xl text-gray-400 mb-10 uppercase tracking-widest bg-gray-800 px-6 py-2 rounded-sm border border-gray-600">Present Continuous (Positive)</p>
+                <div class="glass glass-panel p-16 w-full max-w-5xl text-center border-t-4 border-white shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                    <p class="font-body text-2xl text-gray-300 mb-10 border-b border-gray-700 pb-8">Click the words to change the sentence.</p>
+                    <div class="flex flex-wrap justify-center gap-6 text-5xl font-body items-center">
+                        <div class="sandbox-slot glass px-10 py-8 rounded-sm font-bold border border-white text-white bg-white/10 cursor-pointer hover:bg-white/20" onclick="cycleWord(this, ['I', 'He', 'She', 'It', 'We', 'They'])">She</div>
+                        <div class="sandbox-slot glass px-10 py-8 rounded-sm font-bold border border-gray-500 text-gray-300 cursor-pointer hover:bg-gray-800" onclick="cycleWord(this, ['am', 'is', 'are'])">is</div>
+                        <div class="sandbox-slot glass px-10 py-8 rounded-sm cursor-pointer hover:bg-ronin-red/20 border border-ronin-red text-ronin-red font-bold" onclick="cycleWord(this, ['walking.', 'fighting.', 'looking.', 'running.'])">walking.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-9">
+            <div class="page-content">
+                <h2 class="font-title text-6xl text-ronin-red text-glow-red mb-4">TRAINING DOJO</h2>
+                <p class="font-ui text-xl text-gray-400 mb-10 uppercase tracking-widest bg-ronin-red/20 px-6 py-2 rounded-sm border border-ronin-red">Present Continuous (Negative)</p>
+                <div class="glass glass-panel p-16 w-full max-w-5xl text-center border-t-4 border-ronin-red shadow-[0_0_50px_rgba(153,0,0,0.1)]">
+                    <p class="font-body text-2xl text-gray-300 mb-10 border-b border-gray-700 pb-8">Add <span class="text-ronin-red font-bold">NOT</span> to make it negative.</p>
+                    <div class="flex flex-wrap justify-center gap-4 text-5xl font-body items-center">
+                        <div class="sandbox-slot glass px-8 py-6 rounded-sm font-bold border border-gray-500 text-white" onclick="cycleWord(this, ['I', 'He', 'They'])">He</div>
+                        <div class="sandbox-slot glass px-8 py-6 rounded-sm font-bold border border-gray-500 text-gray-300" onclick="cycleWord(this, ['am', 'is', 'are'])">is</div>
+                        <div class="glass px-8 py-6 rounded-sm border border-ronin-red text-ronin-red font-bold bg-ronin-red/10">not</div>
+                        <div class="sandbox-slot glass px-8 py-6 rounded-sm cursor-pointer hover:bg-white/10 border border-gray-600" onclick="cycleWord(this, ['sleeping.', 'smiling.'])">sleeping.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-10">
+            <div class="page-content max-w-6xl w-full">
+                <div class="text-center w-full">
+                    <div class="flex items-center justify-center text-white animate-pulse mb-8 font-title text-2xl tracking-[0.3em]">
+                        <i class="fa-solid fa-eye mr-4 text-ronin-red"></i> WATCH THE GHOST
+                    </div>
+                    <div class="glass p-3 rounded-sm relative w-full pt-[56.25%] border-2 border-gray-800 bg-black shadow-[0_0_50px_rgba(0,0,0,0.9)]">
+                        <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/7z7kqwuf0a8?start=20" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-11">
+            <div class="page-content w-full max-w-5xl">
+                <h2 class="font-title text-5xl mb-12 text-glow-white text-center">WHAT DO YOU SEE?</h2>
+                <div class="space-y-6 w-full">
+                    <div class="qa-block glass p-10 cursor-pointer border border-gray-700 rounded-sm hover:border-ronin-red transition-colors" onclick="if(!this.classList.contains('revealed')){ addXP(15); this.classList.add('revealed');} else {this.classList.remove('revealed');}">
+                        <div class="font-body text-4xl flex justify-between items-center">1. In the video, is the sun shining or is it snowing? <i class="fa-solid fa-chevron-down text-gray-600 text-2xl mt-1"></i></div>
+                        <div class="reveal-hint text-center mt-6 text-gray-400 font-ui tracking-[0.2em] text-sm animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>CLICK FOR ANSWER</div>
+                        <div class="answer-box font-body text-3xl text-white">
+                            It is <span class="text-ronin-red font-bold">snowing</span>.
+                            <div class="mt-6 p-4 bg-gray-800/50 border-l-4 border-gray-500 text-gray-300 text-2xl">Follow-up: Do you like the snow? Is it cold?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-12">
+            <div class="page-content w-full max-w-5xl">
+                <h2 class="font-title text-5xl mb-12 text-glow-white text-center">WHAT DO YOU SEE?</h2>
+                <div class="space-y-6 w-full">
+                    <div class="qa-block glass p-10 cursor-pointer border border-gray-700 rounded-sm hover:border-ronin-red transition-colors" onclick="if(!this.classList.contains('revealed')){ addXP(15); this.classList.add('revealed');} else {this.classList.remove('revealed');}">
+                        <div class="font-body text-4xl flex justify-between items-center">2. What is the girl holding in her hand? <i class="fa-solid fa-chevron-down text-gray-600 text-2xl mt-1"></i></div>
+                        <div class="reveal-hint text-center mt-6 text-gray-400 font-ui tracking-[0.2em] text-sm animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>CLICK FOR ANSWER</div>
+                        <div class="answer-box font-body text-3xl text-white">
+                            She is holding a <span class="text-ronin-red font-bold">sword (katana)</span>.
+                            <div class="mt-6 p-4 bg-gray-800/50 border-l-4 border-gray-500 text-gray-300 text-2xl">Follow-up: Is the sword big or small?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW SKILL TREE PAGE: DIALOGUE ANALYSIS -->
+        <div class="page" id="page-skill-tree">
+            <div class="page-content w-full max-w-5xl">
+                <div class="text-ronin-red font-title tracking-[0.3em] mb-6 text-sm bg-ronin-red/10 px-6 py-2 rounded-full border border-ronin-red/30 inline-block text-center text-glow-red">TRAILER DIALOGUE</div>
+                <h2 class="font-title text-6xl mb-12 text-glow-white text-center">GHOST WHISPERS</h2>
+                <p class="font-body text-2xl text-gray-400 mb-12 text-center">Click the nodes to unlock the story's secrets.</p>
+
+                <div class="relative w-full max-w-4xl mx-auto">
+                    <!-- Vertical Line -->
+                    <div class="absolute left-12 top-0 bottom-0 w-1 bg-gray-800 z-0"></div>
+
+                    <!-- Node 1 -->
+                    <div class="relative z-10 flex items-start gap-10 mb-10 group cursor-pointer" onclick="unlockSkill(this)">
+                        <div class="w-24 h-24 shrink-0 rounded-full bg-[#050505] border-4 border-gray-700 flex items-center justify-center text-4xl text-gray-600 transition-all duration-500 skill-icon relative">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <div class="absolute inset-0 rounded-full border-2 border-white opacity-0 scale-150 transition-all duration-500 skill-ring pointer-events-none"></div>
+                        </div>
+                        <div class="glass p-8 rounded-sm flex-1 opacity-60 transition-all duration-500 skill-box">
+                            <p class="font-title text-xl text-gray-500 mb-3 skill-title transition-colors">NODE I: THE EDGE</p>
+                            <h3 class="font-body text-3xl text-white mb-4 hidden skill-quote">"We are beyond the edge of Japan."</h3>
+                            <p class="font-ui text-xl text-gray-400 hidden skill-meaning"><i class="fa-solid fa-language text-ronin-red mr-3"></i><strong class="text-white">A1 Meaning:</strong> We are very far away. Not in normal Japan.</p>
+                        </div>
+                    </div>
+
+                    <!-- Node 2 -->
+                    <div class="relative z-10 flex items-start gap-10 mb-10 group cursor-pointer" onclick="unlockSkill(this)">
+                        <div class="w-24 h-24 shrink-0 rounded-full bg-[#050505] border-4 border-gray-700 flex items-center justify-center text-4xl text-gray-600 transition-all duration-500 skill-icon relative">
+                            <i class="fa-solid fa-ghost"></i>
+                            <div class="absolute inset-0 rounded-full border-2 border-white opacity-0 scale-150 transition-all duration-500 skill-ring pointer-events-none"></div>
+                        </div>
+                        <div class="glass p-8 rounded-sm flex-1 opacity-60 transition-all duration-500 skill-box">
+                            <p class="font-title text-xl text-gray-500 mb-3 skill-title transition-colors">NODE II: THE DISAPPEARED</p>
+                            <h3 class="font-body text-3xl text-white mb-4 hidden skill-quote">"People come here to disappear."</h3>
+                            <p class="font-ui text-xl text-gray-400 hidden skill-meaning"><i class="fa-solid fa-language text-ronin-red mr-3"></i><strong class="text-white">A1 Meaning:</strong> People come here to hide. To be ghosts.</p>
+                        </div>
+                    </div>
+
+                    <!-- Node 3 -->
+                    <div class="relative z-10 flex items-start gap-10 group cursor-pointer" onclick="unlockSkill(this)">
+                        <div class="w-24 h-24 shrink-0 rounded-full bg-[#050505] border-4 border-gray-700 flex items-center justify-center text-4xl text-gray-600 transition-all duration-500 skill-icon relative">
+                            <i class="fa-solid fa-khanda"></i>
+                            <div class="absolute inset-0 rounded-full border-2 border-white opacity-0 scale-150 transition-all duration-500 skill-ring pointer-events-none"></div>
+                        </div>
+                        <div class="glass p-8 rounded-sm flex-1 opacity-60 transition-all duration-500 skill-box">
+                            <p class="font-title text-xl text-gray-500 mb-3 skill-title transition-colors">NODE III: PRESENT CONTINUOUS</p>
+                            <h3 class="font-body text-3xl text-white mb-4 hidden skill-quote">"But you... you are <span class="text-ronin-red font-bold text-glow-red">hunting</span>."</h3>
+                            <p class="font-ui text-xl text-gray-400 hidden skill-meaning"><i class="fa-solid fa-language text-ronin-red mr-3"></i><strong class="text-white">A1 Meaning:</strong> Right now, you are looking for an enemy!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-13">
+            <div class="page-content max-w-4xl">
+                <div class="text-ronin-red font-title tracking-[0.3em] mb-6 text-sm bg-ronin-red/10 px-6 py-2 rounded-full border border-ronin-red/30 inline-block text-center text-glow-red">VISUAL CHECK</div>
+                <div class="qa-block glass w-full p-12 cursor-pointer rounded-sm relative border border-gray-700 hover:border-ronin-red transition-colors" onclick="if(!this.classList.contains('revealed')){ addXP(10); this.classList.add('revealed');} else {this.classList.remove('revealed');}">
+                    <h2 class="font-body text-4xl leading-relaxed text-center">Are the men in the video <span class="text-ronin-red font-bold">sleeping</span> or <span class="text-ronin-red font-bold">fighting</span>?</h2>
+                    <div class="reveal-hint text-center mt-8 text-gray-400 font-ui tracking-[0.2em] text-sm animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>CLICK FOR ANSWER</div>
+                    <div class="answer-box font-body text-3xl text-center">
+                        <div class="text-white mb-6 border-b border-gray-700 pb-4">They are <span class="text-ronin-red font-bold">fighting</span>.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-14">
+            <div class="page-content w-full">
+                <h2 class="font-title text-5xl text-white text-glow-white mb-10 text-center">TRIAL 1: ACTIONS</h2>
+                <div class="flex flex-col md:flex-row gap-10 w-full max-w-5xl justify-center" id="matching-game">
+                    <div class="flex flex-col gap-6 w-full md:w-1/2" id="match-col-a">
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="1">Walking</button>
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="2">Fighting</button>
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="3">Snowing</button>
+                    </div>
+                    <div class="flex flex-col gap-6 w-full md:w-1/2" id="match-col-b">
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="3">Weather</button>
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="1">Legs</button>
+                        <button class="glass p-8 text-center font-body text-3xl match-btn rounded-sm border-2 border-transparent transition-all shadow-md" data-match="2">Sword</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-15">
+            <div class="page-content">
+                <div class="text-center mb-12 w-full">
+                    <h2 class="font-title text-5xl text-white text-glow-white mb-6">TRIAL 2: CHOOSE</h2>
+                    <p class="font-body text-2xl text-gray-400">Complete the sentence.</p>
+                </div>
+                <div class="glass glass-panel p-16 w-full max-w-5xl text-center border border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                    <h3 class="font-body text-5xl mb-16 leading-relaxed">"The wolf <span class="inline-block w-32 border-b-4 border-ronin-red mx-3 relative top-2"></span> running."</h3>
+                    <div class="flex justify-center gap-8 flex-wrap">
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, false, 'MCQ')">am</button>
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, true, 'MCQ')">is</button>
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, false, 'MCQ')">are</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-16">
+            <div class="page-content">
+                <div class="text-center mb-12 w-full">
+                    <h2 class="font-title text-5xl text-white text-glow-white mb-6">TRIAL 3: CHOOSE</h2>
+                    <p class="font-body text-2xl text-gray-400">Complete the sentence.</p>
+                </div>
+                <div class="glass glass-panel p-16 w-full max-w-5xl text-center border border-gray-700 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                    <h3 class="font-body text-5xl mb-16 leading-relaxed">"They <span class="inline-block w-32 border-b-4 border-ronin-red mx-3 relative top-2"></span> fighting."</h3>
+                    <div class="flex justify-center gap-8 flex-wrap">
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, false, 'MCQ')">am</button>
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, false, 'MCQ')">is</button>
+                        <button class="btn-ronin text-3xl py-5 px-12" onclick="checkExercise(this, true, 'MCQ')">are</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-17">
+            <div class="page-content">
+                <div class="text-center mb-12 w-full">
+                    <h2 class="font-title text-5xl text-white text-glow-white mb-6">TRIAL 4: BUILD</h2>
+                    <p class="font-body text-2xl text-gray-400">Put the words in order.</p>
+                </div>
+                <div class="w-full max-w-6xl flex flex-col items-center">
+                    <div id="sb1-answer" class="w-full min-h-[140px] glass mb-12 flex flex-wrap items-center justify-center gap-4 p-8 border-4 border-dashed border-gray-600 rounded-sm bg-black/80"></div>
+                    <div id="sb1-bank" class="flex flex-wrap justify-center gap-5">
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">The</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">samurai</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">is</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">walking.</button>
+                    </div>
+                    <div class="mt-16 flex gap-8">
+                        <button onclick="resetBuilder('sb1')" class="text-gray-400 hover:text-white font-ui text-xl border border-gray-600 px-6 py-3 rounded hover:border-white transition-all tracking-widest"><i class="fa-solid fa-rotate-left mr-3"></i>RESET</button>
+                        <button onclick="checkBuilder('sb1', ['The', 'samurai', 'is', 'walking.'])" class="btn-ronin hidden text-xl px-10 py-3 tracking-widest" id="sb1-check">CHECK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-18">
+            <div class="page-content">
+                <div class="text-center mb-12 w-full">
+                    <h2 class="font-title text-5xl text-white text-glow-white mb-6">TRIAL 5: BUILD</h2>
+                    <p class="font-body text-2xl text-gray-400">Put the words in order.</p>
+                </div>
+                <div class="w-full max-w-6xl flex flex-col items-center">
+                    <div id="sb2-answer" class="w-full min-h-[140px] glass mb-12 flex flex-wrap items-center justify-center gap-4 p-8 border-4 border-dashed border-gray-600 rounded-sm bg-black/80"></div>
+                    <div id="sb2-bank" class="flex flex-wrap justify-center gap-5">
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">running.</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">I</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">not</button>
+                        <button class="glass px-10 py-5 font-body text-4xl hover:bg-white/20 transition-colors builder-word rounded-sm shadow-lg border border-gray-600">am</button>
+                    </div>
+                    <div class="mt-16 flex gap-8">
+                        <button onclick="resetBuilder('sb2')" class="text-gray-400 hover:text-white font-ui text-xl border border-gray-600 px-6 py-3 rounded hover:border-white transition-all tracking-widest"><i class="fa-solid fa-rotate-left mr-3"></i>RESET</button>
+                        <button onclick="checkBuilder('sb2', ['I', 'am', 'not', 'running.'])" class="btn-ronin hidden text-xl px-10 py-3 tracking-widest" id="sb2-check">CHECK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-19">
+            <div class="page-content">
+                <div class="text-center mb-12 w-full">
+                    <h2 class="font-title text-5xl text-ronin-red text-glow-red mb-6">TRIAL 6: FIX IT</h2>
+                    <p class="font-body text-2xl text-gray-400">Click the <span class="text-ronin-red font-bold">red errors</span> to fix them.</p>
+                </div>
+                <div class="glass glass-panel p-16 w-full max-w-5xl font-body text-4xl leading-[2.5] text-center border-2 border-ronin-red/50 shadow-[inset_0_0_50px_rgba(153,0,0,0.1)] bg-black/80">
+                    The girl <span class="text-ronin-red font-bold cursor-pointer border-b-4 border-ronin-red hover:bg-ronin-red/20 transition-colors anomaly px-3 rounded" onclick="fixAnomaly(this, 'is')">are</span> looking at the mountain. It <span class="text-ronin-red font-bold cursor-pointer border-b-4 border-ronin-red hover:bg-ronin-red/20 transition-colors anomaly px-3 rounded" onclick="fixAnomaly(this, 'is')">am</span> snowing. The bad men <span class="text-ronin-red font-bold cursor-pointer border-b-4 border-ronin-red hover:bg-ronin-red/20 transition-colors anomaly px-3 rounded" onclick="fixAnomaly(this, 'are')">is</span> fighting. I <span class="text-ronin-red font-bold cursor-pointer border-b-4 border-ronin-red hover:bg-ronin-red/20 transition-colors anomaly px-3 rounded" onclick="fixAnomaly(this, 'am')">is</span> not scared!
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-20">
+            <div class="page-content">
+                <h2 class="font-title text-5xl mb-12 text-glow-white text-center">DESCRIBE THE PICTURE</h2>
+                <div class="w-full max-w-5xl glass p-8 rounded-sm text-center">
+                    <img src="https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/11/wolf-snarling-in-ghost-of-yotei.jpg?q=49&fit=contain&w=750&h=422&dpr=2" class="w-full h-80 object-cover rounded-sm mb-8 border-2 border-gray-600">
+                    <p class="font-body text-3xl mb-8">What is the wolf doing?</p>
+                    <div class="bg-gray-800 p-6 rounded text-2xl font-ui text-gray-300">
+                        Teacher: "Help the student say: 'The wolf is looking / standing / not running.'"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-21">
+            <div class="page-content">
+                <h2 class="font-title text-5xl mb-12 text-glow-white text-center">DESCRIBE THE PICTURE</h2>
+                <div class="w-full max-w-5xl glass p-8 rounded-sm text-center">
+                    <img src="https://reviewdejogos.com.br/wp-content/uploads/2025/10/ghost-of-yotei-bambu-1024x574.jpg" class="w-full h-80 object-cover rounded-sm mb-8 border-2 border-gray-600 object-center">
+                    <p class="font-body text-3xl mb-8">What is the person doing?</p>
+                    <div class="bg-gray-800 p-6 rounded text-2xl font-ui text-gray-300">
+                        Teacher: "Help the student say: 'He is holding a sword / standing.'"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-22">
+            <div class="page-content text-center w-full max-w-5xl">
+                <div class="text-ronin-red font-title tracking-[0.4em] mb-6 text-sm bg-ronin-red/10 px-6 py-2 rounded-full border border-ronin-red/30 inline-block text-glow-red">ACTION ARENA</div>
+                <h2 class="font-title text-6xl text-white mb-8">SHOW ME!</h2>
+                <p class="font-body text-4xl text-gray-300 mb-12 leading-relaxed">Stand up or use your hands! Show the teacher these actions:</p>
+                <ul class="text-4xl font-title text-white space-y-6 mb-12 text-glow-white">
+                    <li>1. I am walking.</li>
+                    <li>2. I am running.</li>
+                    <li>3. I am fighting!</li>
+                </ul>
+                <div class="bg-gray-800 p-6 rounded text-2xl font-ui text-gray-300 mx-auto max-w-2xl">
+                    Teacher: Give XP when they do the action and say the sentence.
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-23">
+            <div class="page-content">
+                <h2 class="font-title text-5xl mb-16 text-center text-glow-white w-full tracking-widest">SAMURAI CODE</h2>
+                <div class="glass p-16 w-full max-w-6xl text-center rounded-sm border border-gray-600 shadow-2xl bg-black/90">
+                    <h3 class="font-body text-5xl mb-24 leading-relaxed">"Wolves are <span class="text-ronin-red font-bold text-glow-red">good</span> animals."</h3>
+                    <div class="flex justify-between items-center relative px-8 md:px-20 w-full">
+                        <div class="absolute top-1/2 left-20 right-20 h-3 bg-gradient-to-r from-green-600 via-gray-600 to-red-600 transform -translate-y-1/2 z-0 rounded-full"></div>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-green-600 hover:bg-green-900/50 transition-all text-2xl font-title font-bold hover:scale-110 shadow-[0_0_20px_rgba(22,163,74,0.5)]">YES</button>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-gray-500 hover:bg-gray-700/50 transition-all text-2xl font-title hover:scale-110">MAYBE</button>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-red-600 hover:bg-red-900/50 transition-all text-2xl font-title font-bold hover:scale-110 shadow-[0_0_20px_rgba(220,38,38,0.5)]">NO</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-24">
+            <div class="page-content">
+                <h2 class="font-title text-5xl mb-16 text-center text-glow-white w-full tracking-widest">SAMURAI CODE</h2>
+                <div class="glass p-16 w-full max-w-6xl text-center rounded-sm border border-gray-600 shadow-2xl bg-black/90">
+                    <h3 class="font-body text-5xl mb-24 leading-relaxed">"Fighting is <span class="text-ronin-red font-bold text-glow-red">bad</span>."</h3>
+                    <div class="flex justify-between items-center relative px-8 md:px-20 w-full">
+                        <div class="absolute top-1/2 left-20 right-20 h-3 bg-gradient-to-r from-green-600 via-gray-600 to-red-600 transform -translate-y-1/2 z-0 rounded-full"></div>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-green-600 hover:bg-green-900/50 transition-all text-2xl font-title font-bold hover:scale-110 shadow-[0_0_20px_rgba(22,163,74,0.5)]">YES</button>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-gray-500 hover:bg-gray-700/50 transition-all text-2xl font-title hover:scale-110">MAYBE</button>
+                        <button class="z-10 bg-black/90 px-8 py-5 rounded-sm border-4 border-red-600 hover:bg-red-900/50 transition-all text-2xl font-title font-bold hover:scale-110 shadow-[0_0_20px_rgba(220,38,38,0.5)]">NO</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-25">
+            <div class="page-content text-center w-full max-w-5xl">
+                <i class="fa-solid fa-mountain-sun text-9xl text-white mb-10 text-glow-white"></i>
+                <h1 class="font-title text-7xl text-white mb-8 tracking-widest">THE JOURNEY</h1>
+                <p class="font-body text-4xl text-gray-300 mb-16 leading-relaxed">You are in Japan. The snow is falling. An enemy is coming.</p>
+                <button onclick="nextPage()" class="btn-ronin text-3xl px-16 py-8 animate-pulse shadow-[0_0_30px_rgba(153,0,0,0.5)]">DRAW SWORD</button>
+            </div>
+        </div>
+
+        <div class="page" id="page-26">
+            <div class="page-content">
+                <h2 class="font-title text-5xl text-white text-glow-white mb-8 text-center">WARRIOR PATH</h2>
+                <div id="class-challenge-area" class="w-full max-w-6xl glass p-12 rounded-sm border-2 border-gray-500 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                    <!-- Renders via JS based on Class -->
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-27">
+            <div class="page-content">
+                <div class="w-full max-w-7xl flex flex-col md:flex-row gap-10">
+                    <div class="w-full md:w-1/2 glass rounded-sm relative overflow-hidden h-[550px] flex items-center justify-center border-4 border-ronin-red">
+                        <div class="absolute inset-0 bg-ronin-red/20 mix-blend-overlay"></div>
+                        <img src="https://images.unsplash.com/photo-1589810635657-232149021da6?q=80&w=1000" class="absolute inset-0 w-full h-full object-cover opacity-50 z-[-1] grayscale-[0.8]">
+                        <div class="z-10 text-center font-title bg-black/90 p-8 rounded-sm border border-ronin-red shadow-[0_0_30px_rgba(153,0,0,0.6)]">
+                            <h3 class="text-5xl text-white mb-6 text-glow-red tracking-widest">ENEMY SIGHTED</h3>
+                            <i class="fa-solid fa-ghost text-7xl text-gray-400 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 flex flex-col gap-8 justify-center">
+                        <div class="glass glass-panel p-10 font-body text-3xl text-white leading-relaxed border-l-4 border-ronin-red bg-black/80">
+                            
+                            <!-- Phase 1: Grammar -->
+                            <div id="rpg-grammar-phase">
+                                <p class="text-ronin-red font-bold text-2xl mb-6 tracking-widest uppercase text-glow-red">Phase 1: Focus</p>
+                                <p class="mb-8 font-title">"The enemy <span class="text-ronin-red font-bold underline">________</span> attacking!"</p>
+                                <p class="text-xl text-gray-400 mb-8 italic">Choose the correct word to charge your attack.</p>
+                                <div class="flex gap-4">
+                                    <button class="btn-ronin text-2xl px-10 py-4 w-1/3" onclick="chargeAttack(false)">am</button>
+                                    <button class="btn-ronin text-2xl px-10 py-4 w-1/3" onclick="chargeAttack(true)">is</button>
+                                    <button class="btn-ronin text-2xl px-10 py-4 w-1/3" onclick="chargeAttack(false)">are</button>
+                                </div>
+                            </div>
+
+                            <!-- Phase 2: Dice Roll -->
+                            <div id="rpg-dice-phase" class="hidden text-center">
+                                <p class="text-green-400 font-bold text-2xl mb-4 tracking-widest uppercase">Phase 2: Strike</p>
+                                <p class="text-2xl mb-8">Attack Charged! Roll the dice.<br><span class="text-gray-400 text-xl italic">(Roll 10 or higher to win)</span></p>
+                                
+                                <div class="flex justify-center items-center mb-8 bg-gray-900/50 p-6 rounded-sm border border-gray-700">
+                                    <i class="fa-solid fa-dice-d20 text-7xl text-ronin-red" id="dice-icon"></i>
+                                    <span id="dice-result" class="text-6xl font-title ml-8 text-white w-20">-</span>
+                                </div>
+                                
+                                <button class="btn-ronin text-3xl px-12 py-5 w-full" onclick="rollAttackDice()" id="btn-roll">ROLL DICE</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-28">
+            <div class="page-content text-center w-full max-w-5xl">
+                <i class="fa-solid fa-khanda text-9xl text-ronin-red mb-10 text-glow-red"></i>
+                <h1 class="font-title text-7xl text-white mb-8">VICTORY</h1>
+                <p class="font-body text-4xl text-gray-300 mb-12 leading-relaxed">You defeated the enemy. The snow is falling.</p>
+                <button onclick="jumpToPage(28)" class="btn-ronin text-3xl px-12 py-6 rounded-sm">SHEATHE SWORD</button>
+            </div>
+        </div>
+
+        <div class="page" id="page-29">
+            <div class="page-content text-center w-full max-w-5xl relative">
+                <!-- Large Japanese Kanji (Completion/End) Watermark -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[25rem] text-ronin-red opacity-10 font-body pointer-events-none select-none z-0">完</div>
+                
+                <div class="relative z-10 flex flex-col items-center">
+                    <i class="fa-solid fa-torii-gate text-[6rem] text-white mb-4 text-glow-white"></i>
+                    <h2 class="font-ui text-xl text-gray-400 tracking-[0.5em] mb-2 uppercase">Congratulations</h2>
+                    <h1 class="font-title text-7xl text-ronin-red mb-6 uppercase text-glow-red" id="end-title">GHOST LEGEND</h1>
+                    <div class="glass glass-panel p-12 inline-block text-left mb-10 min-w-[500px] border border-gray-600 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                        <div class="font-ui text-3xl space-y-6">
+                            <p class="flex justify-between text-gray-300">Name: <span class="text-white font-bold font-title" id="end-name">...</span></p>
+                            <p class="flex justify-between text-gray-300">Path: <span class="text-white font-bold font-title" id="end-class">...</span></p>
+                            <p class="flex justify-between text-gray-300">Honor: <span class="text-ronin-red font-bold" id="end-hp">100%</span></p>
+                            <p class="flex justify-between text-gray-300">Ghost Tales: <span class="text-ronin-red font-bold" id="end-xp">0</span></p>
+                        </div>
+                    </div>
+                    <br>
+                    <button onclick="location.reload()" class="btn-ronin text-2xl px-12 py-5 rounded-sm"><i class="fa-solid fa-rotate-right mr-4"></i> RETURN TO YŌTEI</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-8 glass px-10 py-4 rounded-sm border border-gray-700 bg-black/90 shadow-[0_0_30px_rgba(0,0,0,0.9)]">
+        <button onclick="prevPage()" class="text-gray-400 hover:text-white transition-colors font-title text-xl tracking-widest"><i class="fa-solid fa-chevron-left mr-3"></i> PREV</button>
+        <span class="font-ui text-white text-2xl tracking-[0.2em]" id="page-indicator">01 / 30</span>
+        <button onclick="nextPage()" class="text-gray-400 hover:text-white transition-colors font-title text-xl tracking-widest">NEXT <i class="fa-solid fa-chevron-right ml-3"></i></button>
+    </div>
+
+    <script>
+        let currentO2 = 100;
+        let currentXP = 0;
+        let playerName = '';
+        let playerClass = '';
+        let classColor = '#ffffff';
+        let currentPageIndex = 0;
+        let isAnimating = false;
+        const pages = document.querySelectorAll('.page');
+        const maxPages = pages.length;
+
+        window.onload = () => {
+            pages.forEach((p, index) => { if(index !== 0) { p.classList.remove('active'); } });
+            createParticles();
+            updateHUD();
+            updateNav();
+        };
+
+        function updateHUD() {
+            document.getElementById('hp-bar').style.width = currentO2 + '%';
+            document.getElementById('hp-text').innerText = currentO2 + '%';
+            document.getElementById('xp-counter').innerText = currentXP;
+            document.getElementById('hud-player-name').innerText = playerName || '[ UNKNOWN ]';
+            document.getElementById('hud-player-class').innerText = playerClass || 'Wanderer';
+            
+            if(playerClass) {
+                document.getElementById('hud-player-class').style.color = classColor;
+            }
+
+            if(currentO2 <= 30) {
+                document.getElementById('hp-bar').classList.replace('bg-ronin-red', 'bg-red-600');
+                document.getElementById('hp-text').classList.replace('text-ronin-white', 'text-red-500');
+                document.getElementById('hp-icon').classList.replace('text-ronin-white', 'text-red-500');
+                document.getElementById('hp-icon').classList.add('animate-ping');
+            } else {
+                document.getElementById('hp-bar').classList.replace('bg-red-600', 'bg-ronin-red');
+                document.getElementById('hp-text').classList.replace('text-red-500', 'text-ronin-white');
+                document.getElementById('hp-icon').classList.replace('text-red-500', 'text-ronin-white');
+                document.getElementById('hp-icon').classList.remove('animate-ping');
+            }
+        }
+
+        function takeDamage(amount) {
+            currentO2 = Math.max(0, currentO2 - amount);
+            updateHUD();
+            const flash = document.getElementById('dmg-flash');
+            flash.className = 'dmg-overlay';
+            setTimeout(() => flash.className = '', 400);
+            document.body.classList.add('shake-fx');
+            setTimeout(() => document.body.classList.remove('shake-fx'), 400);
+            if(currentO2 === 0) jumpToPage(28); 
+        }
+
+        function addXP(amount) {
+            currentXP += amount;
+            updateHUD();
+            document.getElementById('xp-counter').classList.add('xp-gain');
+            setTimeout(() => document.getElementById('xp-counter').classList.remove('xp-gain'), 600);
+        }
+
+        function showPraise(text, colorClass) {
+            const praiseEl = document.createElement('div');
+            praiseEl.className = `praise-fx font-title text-6xl md:text-[6rem] font-bold uppercase tracking-widest ${colorClass}`;
+            praiseEl.innerHTML = text;
+            document.body.appendChild(praiseEl);
+            
+            // Gives extra XP automatically
+            addXP(20);
+            
+            setTimeout(() => {
+                praiseEl.remove();
+            }, 2500);
+        }
+
+        function updateNav() {
+            document.getElementById('page-indicator').innerText = `${(currentPageIndex + 1).toString().padStart(2, '0')} / ${pages.length}`;
+            document.querySelectorAll('iframe').forEach(iframe => iframe.src = iframe.src);
+        }
+
+        function nextPage() {
+            if (currentPageIndex < maxPages - 1) {
+                pages[currentPageIndex].classList.remove('active');
+                currentPageIndex++;
+                pages[currentPageIndex].classList.add('active');
+                updateNav();
+                checkPageTriggers();
+            }
+        }
+
+        function prevPage() {
+            if (currentPageIndex > 0) {
+                pages[currentPageIndex].classList.remove('active');
+                currentPageIndex--;
+                pages[currentPageIndex].classList.add('active');
+                updateNav();
+                checkPageTriggers();
+            }
+        }
+
+        function jumpToPage(index) {
+            pages[currentPageIndex].classList.remove('active');
+            currentPageIndex = index;
+            pages[currentPageIndex].classList.add('active');
+            updateNav();
+            checkPageTriggers();
+        }
+
+        function checkPageTriggers() {
+            if (pages[currentPageIndex].id === 'page-26') renderClassChallenge();
+            
+            if (pages[currentPageIndex].id === 'page-27') {
+                // Reset the duel phase just in case the student navigates away and back
+                document.getElementById('rpg-grammar-phase').classList.remove('hidden');
+                document.getElementById('rpg-dice-phase').classList.add('hidden');
+                document.getElementById('dice-result').innerText = "-";
+                document.getElementById('dice-result').classList.remove('text-green-400', 'text-ronin-red');
+                document.getElementById('dice-result').classList.add('text-white');
+                document.getElementById('btn-roll').innerText = "ROLL DICE";
+                document.getElementById('btn-roll').disabled = false;
+            }
+
+            if (pages[currentPageIndex].id === 'page-29') {
+                document.getElementById('end-name').innerText = playerName || 'Student';
+                document.getElementById('end-class').innerText = playerClass || 'Wanderer';
+                document.getElementById('end-class').style.color = classColor;
+                document.getElementById('end-hp').innerText = currentO2 + '%';
+                document.getElementById('end-xp').innerText = currentXP;
+                
+                if (currentO2 <= 0) {
+                    document.getElementById('end-title').innerText = "NO HONOR";
+                    document.getElementById('end-title').classList.replace('text-white', 'text-gray-500');
+                    document.getElementById('end-title').classList.remove('text-glow-red');
+                }
+            }
+        }
+
+        function selectClass(className, colorHex) {
+            playerClass = className;
+            classColor = colorHex;
+            document.querySelectorAll('#sorting-quiz-area .glass-panel').forEach(el => {
+                el.style.backgroundColor = 'rgba(15, 15, 15, 0.7)';
+                el.style.borderColor = 'transparent';
+            });
+            
+            event.currentTarget.style.backgroundColor = colorHex + '33'; 
+            event.currentTarget.style.borderColor = colorHex;
+            
+            document.getElementById('name-input-section').classList.remove('hidden');
+            document.getElementById('name-input-section').classList.add('flex');
+            document.getElementById('player-name-input').focus();
+        }
+
+        function confirmAgent() {
+            const input = document.getElementById('player-name-input').value.trim();
+            if(input) {
+                playerName = input;
+                updateHUD();
+                addXP(100);
+                nextPage();
+            }
+        }
+
+        function cycleWord(element, wordsArray) {
+            let currentWord = element.innerText;
+            let index = wordsArray.indexOf(currentWord);
+            element.innerText = (index === -1 || index === wordsArray.length - 1) ? wordsArray[0] : wordsArray[index + 1];
+            element.classList.add('bg-white/20');
+            setTimeout(() => element.classList.remove('bg-white/20'), 200);
+        }
+
+        function revealVocabAdvanced(vocabId, element) {
+            document.getElementById(vocabId).classList.remove('hidden');
+            element.classList.add('opacity-30', 'pointer-events-none');
+            
+            const statusEl = document.getElementById('status-' + vocabId);
+            if(statusEl) {
+                statusEl.innerHTML = statusEl.innerHTML.replace('fa-lock', 'fa-lock-open');
+                statusEl.classList.replace('text-gray-500', 'text-white');
+                statusEl.classList.add('bg-white/20', 'shadow-[0_0_15px_rgba(255,255,255,0.4)]');
+            }
+            addXP(20);
+        }
+
+        function unlockSkill(el) {
+            if(el.classList.contains('unlocked')) return;
+            el.classList.add('unlocked');
+            
+            const icon = el.querySelector('.skill-icon');
+            icon.classList.replace('border-gray-700', 'border-white');
+            icon.classList.replace('text-gray-600', 'text-white');
+            icon.classList.add('shadow-[0_0_25px_#ffffff]', 'bg-white/10');
+            
+            const ring = el.querySelector('.skill-ring');
+            ring.classList.remove('opacity-0', 'scale-150');
+            ring.classList.add('opacity-100', 'scale-100', 'animate-ping');
+            setTimeout(() => ring.classList.remove('animate-ping'), 1000);
+
+            const box = el.querySelector('.skill-box');
+            box.classList.remove('opacity-60');
+            box.classList.add('border-white', 'bg-black/80', 'shadow-[0_0_30px_rgba(255,255,255,0.1)]');
+            
+            const title = el.querySelector('.skill-title');
+            title.classList.replace('text-gray-500', 'text-white');
+            title.classList.add('text-glow-white');
+            
+            el.querySelector('.skill-quote').classList.remove('hidden');
+            el.querySelector('.skill-meaning').classList.remove('hidden');
+
+            addXP(50);
+        }
+
+        function renderClassChallenge() {
+            const area = document.getElementById('class-challenge-area');
+            let content = "";
+            if(playerClass === 'SAMURAI') {
+                content = `<div class="text-center"><i class="fa-brands fa-galactic-senate text-7xl text-ronin-red mb-6"></i><h3 class="font-title text-5xl mb-6 text-white">SAMURAI COMBAT</h3><p class="font-body text-3xl mb-8 text-gray-300">"I ____ fighting the enemy."</p><button class="btn-ronin text-2xl px-12 py-4 mr-4" onclick="handleClassGrammar(this, true)">am</button><button class="btn-ronin text-2xl px-12 py-4" onclick="handleClassGrammar(this, false)">are</button></div>`;
+            } else if(playerClass === 'SHINOBI') {
+                content = `<div class="text-center"><i class="fa-solid fa-user-ninja text-7xl text-gray-400 mb-6"></i><h3 class="font-title text-5xl mb-6 text-white">SHINOBI STEALTH</h3><p class="font-body text-3xl mb-8 text-gray-300">"We ____ walking in the shadows."</p><button class="btn-ronin text-2xl px-12 py-4 mr-4" onclick="handleClassGrammar(this, false)">am</button><button class="btn-ronin text-2xl px-12 py-4" onclick="handleClassGrammar(this, true)">are</button></div>`;
+            } else {
+                content = `<div class="text-center"><i class="fa-solid fa-khanda text-7xl text-yellow-500 mb-6"></i><h3 class="font-title text-5xl mb-6 text-white">RONIN WANDERING</h3><p class="font-body text-3xl mb-8 text-gray-300">"She ____ looking at the mountain."</p><button class="btn-ronin text-2xl px-12 py-4 mr-4" onclick="handleClassGrammar(this, true)">is</button><button class="btn-ronin text-2xl px-12 py-4" onclick="handleClassGrammar(this, false)">am</button></div>`;
+            }
+            area.innerHTML = content;
+        }
+
+        function handleClassGrammar(btn, isCorrect) {
+            if(isCorrect) {
+                btn.classList.add('bg-white/50', 'border-white');
+                addXP(100);
+                setTimeout(() => nextPage(), 1000);
+            } else {
+                takeDamage(20);
+                btn.classList.add('bg-ronin-red/50', 'border-ronin-red', 'shake-fx');
+                setTimeout(() => btn.classList.remove('shake-fx', 'bg-ronin-red/50', 'border-ronin-red'), 1000);
+            }
+        }
+
+        // RPG Dice Combat Logic
+        function chargeAttack(isCorrect) {
+            const phase = document.getElementById('rpg-grammar-phase');
+            if (isCorrect) {
+                addXP(50);
+                phase.classList.add('hidden');
+                document.getElementById('rpg-dice-phase').classList.remove('hidden');
+            } else {
+                takeDamage(15);
+                phase.classList.add('shake-fx');
+                setTimeout(() => phase.classList.remove('shake-fx'), 500);
+            }
+        }
+
+        function rollAttackDice() {
+            const btn = document.getElementById('btn-roll');
+            btn.disabled = true;
+            const diceIcon = document.getElementById('dice-icon');
+            const diceResult = document.getElementById('dice-result');
+            
+            diceIcon.classList.add('fa-spin');
+            diceResult.classList.remove('text-green-400', 'text-ronin-red');
+            diceResult.classList.add('text-white');
+            diceResult.innerText = "?";
+            
+            setTimeout(() => {
+                diceIcon.classList.remove('fa-spin');
+                const roll = Math.floor(Math.random() * 20) + 1;
+                diceResult.innerText = roll;
+                
+                if (roll >= 10) {
+                    diceResult.classList.add('text-green-400');
+                    diceResult.classList.remove('text-white');
+                    addXP(200);
+                    btn.innerText = "VICTORY!";
+                    setTimeout(() => nextPage(), 2000);
+                } else {
+                    diceResult.classList.add('text-ronin-red');
+                    diceResult.classList.remove('text-white');
+                    takeDamage(20);
+                    btn.innerText = "TRY AGAIN";
+                    btn.disabled = false;
+                }
+            }, 1200);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                const req = document.documentElement.requestFullscreen();
+                if (req) req.catch(err => console.warn(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function toggleDMTools() { document.getElementById('dm-panel').classList.toggle('hidden'); document.getElementById('dm-panel').classList.toggle('flex'); }
+        function toggleWhiteboard() { document.getElementById('whiteboard-panel').classList.toggle('hidden'); document.getElementById('whiteboard-panel').classList.toggle('flex'); }
+        function clearWhiteboard() { document.getElementById('wb-textarea').value = ''; }
+
+        let dmTimer; let dmSecs = 0;
+        document.getElementById('btn-timer-start').onclick = () => { clearInterval(dmTimer); dmTimer = setInterval(() => { dmSecs++; document.getElementById('dm-timer-display').innerText = `${String(Math.floor(dmSecs/60)).padStart(2,'0')}:${String(dmSecs%60).padStart(2,'0')}`; }, 1000); };
+        document.getElementById('btn-timer-stop').onclick = () => { clearInterval(dmTimer); dmSecs = 0; document.getElementById('dm-timer-display').innerText = "00:00"; };
+
+        function createParticles() {
+            const container = document.getElementById('particle-container');
+            // Embers
+            for(let i=0; i<15; i++) {
+                let p = document.createElement('div'); p.className = 'particle-ember';
+                let size = Math.random() * 4 + 2; p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + 'vw'; p.style.animationDuration = (Math.random() * 8 + 4) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's'; container.appendChild(p);
+            }
+            // Snow
+            for(let i=0; i<30; i++) {
+                let p = document.createElement('div'); p.className = 'particle-snow';
+                let size = Math.random() * 3 + 1; p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + 'vw'; p.style.animationDuration = (Math.random() * 10 + 5) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's'; container.appendChild(p);
+            }
+        }
+
+        // Trial 1 Matching Logic
+        let selectedMatch = null;
+        document.querySelectorAll('.match-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if(this.classList.contains('matched')) return;
+                if(!selectedMatch) { 
+                    selectedMatch = this; 
+                    this.classList.add('border-white', 'bg-white/20'); 
+                } 
+                else {
+                    if(this.parentElement.id === selectedMatch.parentElement.id) {
+                        selectedMatch.classList.remove('border-white', 'bg-white/20');
+                        selectedMatch = this;
+                        this.classList.add('border-white', 'bg-white/20');
+                    } else {
+                        if(this.dataset.match === selectedMatch.dataset.match) {
+                            this.classList.add('bg-gray-700', 'matched', 'text-white'); 
+                            this.classList.replace('border-transparent', 'border-gray-400');
+                            selectedMatch.classList.add('bg-gray-700', 'matched', 'text-white');
+                            selectedMatch.classList.replace('border-white', 'border-gray-400');
+                            addXP(50); selectedMatch = null;
+                        } else { 
+                            takeDamage(10); 
+                            this.classList.add('bg-ronin-red/50', 'border-ronin-red');
+                            setTimeout(() => {
+                                this.classList.remove('bg-ronin-red/50', 'border-ronin-red');
+                                selectedMatch.classList.remove('border-white', 'bg-white/20'); 
+                                selectedMatch = null; 
+                            }, 500);
+                        }
+                    }
+                }
+            });
+        });
+
+        // MCQ Generic Check
+        function checkExercise(btn, isCorrect, type) {
+            if (isAnimating) return;
+            isAnimating = true;
+            if(isCorrect) {
+                btn.classList.add('bg-white/50', 'border-white');
+                addXP(50);
+                setTimeout(() => { isAnimating = false; btn.classList.remove('bg-white/50', 'border-white'); }, 1000);
+            } else {
+                takeDamage(15);
+                btn.classList.add('bg-ronin-red/50', 'border-ronin-red', 'shake-fx');
+                setTimeout(() => { isAnimating = false; btn.classList.remove('bg-ronin-red/50', 'border-ronin-red', 'shake-fx'); }, 1000);
+            }
+        }
+
+        // Sentence Builders
+        document.querySelectorAll('.builder-word').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const prefix = this.parentElement.id.split('-')[0];
+                const answerBox = document.getElementById(prefix + '-answer');
+                const bankBox = document.getElementById(prefix + '-bank');
+                const checkBtn = document.getElementById(prefix + '-check');
+                
+                if(this.parentElement.id.includes('bank')) { answerBox.appendChild(this); } 
+                else { bankBox.appendChild(this); }
+                
+                if(answerBox.children.length === 4) { checkBtn.classList.remove('hidden'); } 
+                else { checkBtn.classList.add('hidden'); }
+            });
+        });
+
+        function resetBuilder(prefix) {
+            const answerBox = document.getElementById(prefix + '-answer');
+            const bankBox = document.getElementById(prefix + '-bank');
+            Array.from(answerBox.children).forEach(child => bankBox.appendChild(child));
+            document.getElementById(prefix + '-check').classList.add('hidden');
+            answerBox.classList.remove('border-white', 'border-ronin-red');
+        }
+
+        function checkBuilder(prefix, correctOrderArray) {
+            const answerBox = document.getElementById(prefix + '-answer');
+            const currentOrder = Array.from(answerBox.children).map(child => child.innerText);
+            let isCorrect = true;
+            for(let i=0; i<correctOrderArray.length; i++){ if(currentOrder[i] !== correctOrderArray[i]) isCorrect = false; }
+
+            if(isCorrect) {
+                answerBox.classList.replace('border-dashed', 'border-solid');
+                answerBox.classList.replace('border-gray-600', 'border-white');
+                addXP(100);
+            } else {
+                takeDamage(20);
+                answerBox.classList.replace('border-gray-600', 'border-ronin-red');
+                setTimeout(() => { answerBox.classList.replace('border-ronin-red', 'border-gray-600'); }, 1000);
+            }
+        }
+
+        function fixAnomaly(element, correction) {
+            element.innerText = correction;
+            element.classList.replace('text-ronin-red', 'text-white');
+            element.classList.replace('border-ronin-red', 'border-white');
+            element.classList.remove('hover:bg-ronin-red/20', 'cursor-pointer');
+            element.onclick = null;
+            addXP(30);
+            element.style.animation = 'pulse-red 0.5s ease';
+        }
+    </script>
+</body>
+</html>
